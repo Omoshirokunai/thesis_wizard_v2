@@ -1,0 +1,4 @@
+{
+    "model_path": "models/bartowski/Nemotron-Mini-4B-Instruct-GGUF/Nemotron-Mini-4B-Instruct-Q6_K.gguf",
+    "system_prompt": "you are a helpful assistant for a four year old, the interaction will remain as one of a caregiver to a child "
+}
