@@ -19,7 +19,7 @@ def load_model():
 
     if model_path and model_path != current_model_path:
         print(f"Loading model from: {model_path}")
-        model = llama_cpp.Llama(model_path=model_path)
+        model = llama_cpp.Llama(model_path=model_path, verbose=False)
         current_model_path = model_path
     return model
 

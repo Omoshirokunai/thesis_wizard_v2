@@ -1,33 +1,9 @@
-<!-- templates/index.html -->
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LLM Query</title>
+    <title>LLM Interaction</title>
 </head>
 <body>
-    <h1>LLM Query with Model Selection</h1>
-
-    <!-- Model Selection and System Prompt Form -->
-    <form method="post" action="{{ url_for('update_settings_route') }}">
-        <label for="model">Select Model:</label>
-        <select name="model" id="model">
-            {% for model in models %}
-                <option value="{{ model }}" {% if model == settings.model_path %}selected{% endif %}>
-                    {{ model }}
-                </option>
-            {% endfor %}
-        </select>
-        <br><br>
-
-        <label for="system_prompt">System Prompt:</label><br>
-        <textarea name="system_prompt" rows="3" cols="40" placeholder="Enter system prompt">{{ settings.system_prompt }}</textarea>
-        <br><br>
-
-        <button type="submit">Save Settings</button>
-    </form>
-
     <h1>LLM Interaction</h1>
     <form method="POST">
         <label for="prompt">Your Input:</label>
@@ -35,17 +11,48 @@
         <button type="submit">Submit</button>
     </form>
 
+    <hr>
+    <h2>Conversation History</h2>
+    <h3>User Inputs:</h3>
+    <ul>
+        {% for content in history.user_content %}
+        <li>{{ content }}</li>
+        {% endfor %}
+    </ul>
+
+    <h3>Model Responses:</h3>
+    <ul>
+        {% for content in history.model_content %}
+        <li>{{ content }}</li>
+        {% endfor %}
+    </ul>
+
     {% if response %}
+    <hr>
     <h2>Model Response:</h2>
     <p>{{ response }}</p>
     {% endif %}
 
-    {% if stats %}
+    <hr>
     <h3>Content Statistics:</h3>
     <p>User Words: {{ stats.user_words }}</p>
     <p>Model Words: {{ stats.model_words }}</p>
     <p>User Contribution: {{ stats.user_percentage }}%</p>
     <p>Model Contribution: {{ stats.model_percentage }}%</p>
-    {% endif %}
+
+    <hr>
+    <h2>Specify PDF Directory for RAG</h2>
+    <form action="/set_pdf_directory" method="POST">
+        <label for="pdf_directory">PDF Directory Path:</label>
+        <input type="text" name="pdf_directory" id="pdf_directory" required><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <h3>PDF Files:</h3>
+    <ul>
+        {% for pdf_file in pdf_files %}
+        <li>{{ pdf_file }}</li>
+        {% endfor %}
+    </ul>
 </body>
 </html>

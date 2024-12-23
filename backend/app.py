@@ -1,48 +1,53 @@
 import os
 
 from flask import Flask, redirect, render_template, request, url_for
+from backend.utils.model_loader import load_model
 from history.history_manager import (
     add_model_response,
     add_user_input,
     calculate_content_statistics,
+    load_history,
 )
 from llm_model import generate_response
-from utils.model_loader import get_model, load_model
+from pdf_processing.pdf_extractor import extract_pdfs_from_directory
 from utils.user_settings import load_settings, update_settings
 
 app = Flask(__name__)
 
 
+# Global variable to hold PDF files
+pdf_files = []
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    global pdf_files
     response = None
-    # if request.method == 'POST':
-    #     prompt = request.form.get('prompt')
-    #     if prompt:
-    #         response = generate_response(prompt)
-    # return render_template('index.html', response=response, settings=load_settings(), models=get_available_models())
     content_stats = {}
 
     if request.method == 'POST':
         prompt = request.form.get('prompt')
         if prompt:
-            # Add the user prompt to history
             add_user_input(prompt)
-
-            # Generate model response and log it
             response = generate_response(prompt)
             add_model_response(response)
-
-            # Calculate content statistics
             content_stats = calculate_content_statistics()
 
+    history = load_history()
     return render_template(
         'index.html',
         response=response,
-        settings=load_settings(),
-        stats=content_stats
+        stats=content_stats,
+        history=history,
+        pdf_files=pdf_files
     )
 
+
+@app.route('/set_pdf_directory', methods=['POST'])
+def set_pdf_directory():
+    global pdf_files
+    directory = request.form.get('pdf_directory')
+    pdf_files = extract_pdfs_from_directory(directory)
+    return redirect(url_for('index'))
 
 
 def get_available_models():
@@ -67,6 +72,7 @@ def update_settings_route():
         print(f"Error updating settings: {e}")
     # Reload model based on updated settings
     load_model()
+    
     return redirect(url_for('index'))
 
 if __name__ == '__main__':

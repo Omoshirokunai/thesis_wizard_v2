@@ -13,5 +13,12 @@ def generate_response(prompt):
     full_prompt = f"{system_prompt}\n\n{prompt}"
 
     # Generate response
-    response = model(full_prompt, max_tokens=100, temperature=0.7)
-    return response['choices'][0]['text']
+    try:
+        response = model(full_prompt,
+                         max_tokens=500,
+                         temperature=0.2,
+                         echo=False,
+                         stream=False)
+        return response['choices'][0]['text'].strip()
+    except Exception as e:
+        return f"Error generating response: {str(e)}"
