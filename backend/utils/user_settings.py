@@ -1,21 +1,36 @@
 import json
+import os
 
 from genericpath import exists
+from utils.constants import DEFAULT_SETTINGS_FILE, SETTINGS_FILE
 
-SETTINGS_FILE = "usersettings.json"
+# SETTINGS_FILE = "usersettings.json"
 
 def load_settings():
-    """Loads user settings from the JSON file."""
-    if not exists(SETTINGS_FILE):
-        # Create usersettings.json and write default_settings.json into it
-        with open("default_settings.json", "r") as default_f, open(SETTINGS_FILE, "w") as f:
-            settings = json.load(default_f)
-            json.dump(settings, f, indent=4)
-            return settings
+    """Load user settings from JSON file"""
+    try:
+        if not os.path.exists(SETTINGS_FILE):
+            # Copy default settings
+            with open(DEFAULT_SETTINGS_FILE, "r") as default_f:
+                settings = json.load(default_f)
+                os.makedirs(os.path.dirname(SETTINGS_FILE), exist_ok=True)
+                with open(SETTINGS_FILE, "w") as f:
+                    json.dump(settings, f, indent=4)
+                return settings
 
-    with open(SETTINGS_FILE, "r") as f:
-        settings = json.load(f)
-    return settings
+        with open(SETTINGS_FILE, "r") as f:
+            content = f.read()
+            if not content.strip():
+                # File exists but empty
+                raise FileNotFoundError
+            return json.loads(content)
+    except (json.JSONDecodeError, FileNotFoundError):
+         # On any error, reset to defaults
+        with open(DEFAULT_SETTINGS_FILE, "r") as default_f:
+            settings = json.load(default_f)
+            with open(SETTINGS_FILE, "w") as f:
+                json.dump(settings, f, indent=4)
+            return settings
 
 def update_settings(model_path=None, system_prompt=None):
     """

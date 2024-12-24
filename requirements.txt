@@ -1,3 +1,7 @@
 pdfplumber
 flask
 arxiv
+huggingface_hub
+llama-cpp-python == 0.3.5
+knowledge-storm
+pdftitle

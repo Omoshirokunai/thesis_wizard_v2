@@ -1,35 +1,22 @@
-import llama_cpp
+import os
+
+from llama_cpp import Llama
 
 from .user_settings import load_settings
 
-# Global variables to hold the model instance and path
-model = None
-current_model_path = None
 
-def load_model():
+def load_model(model_path=None):
     """
-    Loads or reloads the model based on the model path in usersettings.json.
+    Load the LLM model. If no path is provided, fallback to the default model from user settings.
+
+    Parameters:
+    - model_path (str): Path to the model file (e.g., ".gguf").
 
     Returns:
-    - model: An instance of the loaded model.
+    - Llama: Loaded model object.
     """
-    global model, current_model_path
-    settings = load_settings()
-    model_path = settings.get("model_path")
+    if not model_path or not os.path.exists(model_path):
+        raise ValueError("Model path is invalid or missing.")
 
-    if model_path and model_path != current_model_path:
-        print(f"Loading model from: {model_path}")
-        model = llama_cpp.Llama(model_path=model_path, verbose=False)
-        current_model_path = model_path
-    return model
-
-def get_model():
-    """
-    Returns the current model instance, loading it if necessary.
-
-    Returns:
-    - model: An instance of the loaded model or None if not loaded.
-    """
-    if model is None:
-        load_model()
-    return model
+    print(f"Loading model from: {model_path}")
+    return Llama(model_path=model_path, verbose=False)

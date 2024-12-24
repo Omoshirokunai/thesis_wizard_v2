@@ -2,6 +2,8 @@ import os
 
 import pdfplumber
 
+from .chunking import chunk_text
+
 
 def extract_pdfs_from_directory(directory):
     """
@@ -24,19 +26,47 @@ def extract_pdfs_from_directory(directory):
                 pdf_files.append(os.path.join(root, file))
     return pdf_files
 
-def extract_text_from_pdf(pdf_path):
+# def extract_text_from_pdf(pdf_path):
+#     """
+#     Extracts text from a PDF file.
+
+#     Parameters:
+#     - pdf_path (str): Path to the PDF file.
+
+#     Returns:
+#     - str: Extracted text from the PDF.
+#     """
+#     try:
+#         with pdfplumber.open(pdf_path) as pdf:
+#             return '\n'.join([page.extract_text() for page in pdf.pages if page.extract_text()])
+#     except Exception as e:
+#         print(f"Failed to extract text from {pdf_path}: {e}")
+#         return ""
+
+
+# def extract_text_from_pdf(pdf_path):
+#     """Extracts raw text from a PDF."""
+#     try:
+#         with pdfplumber.open(pdf_path) as pdf:
+#             return '\n'.join([page.extract_text() for page in pdf.pages if page.extract_text()])
+#     except Exception as e:
+#         print(f"Failed to extract text from {pdf_path}: {e}")
+#         return ""
+
+# import pdfplumber
+
+def extract_text_from_pdf(file_path):
     """
     Extracts text from a PDF file.
 
     Parameters:
-    - pdf_path (str): Path to the PDF file.
+    - file_path (str): Path to the PDF file.
 
     Returns:
     - str: Extracted text from the PDF.
     """
-    try:
-        with pdfplumber.open(pdf_path) as pdf:
-            return '\n'.join([page.extract_text() for page in pdf.pages if page.extract_text()])
-    except Exception as e:
-        print(f"Failed to extract text from {pdf_path}: {e}")
-        return ""
+    with pdfplumber.open(file_path) as pdf:
+        text = ""
+        for page in pdf.pages:
+            text += page.extract_text()
+        return text
