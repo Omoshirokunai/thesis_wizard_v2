@@ -40,7 +40,6 @@
 <body>
     <h1>LLM Interaction</h1>
 
-     <!-- Add this section after the h1 -->
      <div class="model-section">
         <h2>Model Settings</h2>
         <!-- Model Status -->
@@ -78,43 +77,7 @@
 
 
 
-     <!-- Add this section after the h1 -->
-     <div class="model-section">
-        <h2>Model Settings</h2>
-        <!-- Model Status -->
-        {% if model %}
-        <p class="success">Current Model: {{ settings.model_path }}</p>
-        <p>System Prompt: {{ settings.system_prompt }}</p>
-    {% else %}
-        <p class="error">No model loaded</p>
-        {% if not model_exists %}
-            <form action="/download_model" method="POST">
-                <button type="submit">Download Default Model</button>
-            </form>
-        {% endif %}
-    {% endif %}
-
-
-    <!-- Model Selection -->
-    <form action="/update_settings" method="POST">
-        <label for="model">Select Model:</label>
-        <select name="model" id="model">
-            {% for model_path in models %}
-                <option value="{{ model_path }}" {% if model_path == settings.model_path %}selected{% endif %}>
-                    {{ model_path.split('/')[-1] }}
-                </option>
-            {% endfor %}
-        </select>
-
-        <label for="system_prompt">System Prompt:</label>
-        <textarea name="system_prompt" id="system_prompt" rows="3" cols="50">{{ settings.system_prompt }}</textarea>
-
-        <button type="submit">Update Settings</button>
-    </form>
-
-
-
-
+<!-- User input -->
     <form method="POST">
         <label for="prompt">Your Input:</label>
         <textarea name="prompt" id="prompt" rows="5" cols="50"></textarea><br>

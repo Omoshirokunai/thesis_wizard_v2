@@ -71,7 +71,7 @@ def index():
     content_stats = calculate_content_statistics()
     settings = load_settings()
     model_exists = os.path.exists(settings["model_path"])
-
+    history = load_history()
     if request.method == "POST" and request.form.get("prompt"):
         if not model:
             response = "No model loaded. Please select or download a model."
@@ -92,7 +92,8 @@ def index():
         models=get_available_models(),
         model=model,
         model_exists=model_exists,
-        pdf_info=pdf_info
+        pdf_info=pdf_info,
+        history=history
     )
 @app.route("/autocomplete", methods=["POST"])
 def autocomplete():
@@ -136,7 +137,6 @@ def update_settings_route():
 @app.route("/set_pdf_directory", methods=["POST"])
 def set_pdf_directory():
     global pdf_files, pdf_info
-    global pdf_files, pdf_info
 
     directory = request.form.get("pdf_directory")
     pdf_files = [
@@ -147,9 +147,7 @@ def set_pdf_directory():
 
     # Extract and chunk PDFs
     chunked_data = {}
-    pdf_info = {}
-
-    pdf_info = {}
+    pdf_info = {}  # Remove duplicate declaration
 
     for pdf_file in pdf_files:
         text = extract_text_from_pdf(pdf_file)
@@ -157,13 +155,7 @@ def set_pdf_directory():
         title = get_pdf_title(pdf_file)
         chunked_data[title] = chunks
 
-        # Store PDF info
-        pdf_info[title] = {
-            "chunks": len(chunks),
-            "file_path": pdf_file
-        }
-
-        # Store PDF info
+        # Store PDF info (remove duplicate block)
         pdf_info[title] = {
             "chunks": len(chunks),
             "file_path": pdf_file
@@ -172,7 +164,6 @@ def set_pdf_directory():
     save_knowledge_base(chunked_data)
 
     return redirect(url_for("index"))
-
 @app.route("/api/status", methods=["GET"])
 def get_status():
     """

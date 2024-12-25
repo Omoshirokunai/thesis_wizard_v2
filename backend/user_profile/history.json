@@ -29,6 +29,36 @@
         "name": "Nemotron-Mini-4B-Instruct-Q6_K.gguf",
         "system_prompt": "As a researcher writing a thesis on a given topic. the sensible completion for the following sentence is"
       }
+    },
+    {
+      "time_stamp": "2024-12-25T13:30:54.124837",
+      "user_input": "LLMs for research writing is unethical because:",
+      "type": "user"
+    },
+    {
+      "type": "model",
+      "content": "A. They can generate plagiarism.\nB. They can generate biased content.\nC. They can generate content that is not relevant to the topic.\nD. They can generate content that is not coherent.",
+      "timestamp": "2024-12-25T13:31:05.312956",
+      "model": {
+        "path": "models\\models--bartowski--Nemotron-Mini-4B-Instruct-GGUF\\snapshots\\fb49cde090c86092d89905bea2ffc41c23c2615e\\Nemotron-Mini-4B-Instruct-Q6_K.gguf",
+        "name": "Nemotron-Mini-4B-Instruct-Q6_K.gguf",
+        "system_prompt": "As a researcher writing a thesis on a given topic. the sensible completion for the following sentence is"
+      }
+    },
+    {
+      "time_stamp": "2024-12-25T13:32:38.131470",
+      "user_input": "LLMs for research writing is unethical because:",
+      "type": "user"
+    },
+    {
+      "type": "model",
+      "content": "A. They can generate plagiarism.\nB. They can generate biased content.\nC. They can generate content that is not relevant to the topic.\nD. They can generate content that is not coherent.",
+      "timestamp": "2024-12-25T13:32:50.899794",
+      "model": {
+        "path": "models\\models--bartowski--Nemotron-Mini-4B-Instruct-GGUF\\snapshots\\fb49cde090c86092d89905bea2ffc41c23c2615e\\Nemotron-Mini-4B-Instruct-Q6_K.gguf",
+        "name": "Nemotron-Mini-4B-Instruct-Q6_K.gguf",
+        "system_prompt": "As a researcher writing a thesis on a given topic. the sensible completion for the following sentence is"
+      }
     }
   ]
 }
