@@ -2,10 +2,11 @@ import os
 
 from llama_cpp import Llama
 
+from .constants import DEFAULT_MODEL_PATH
 from .user_settings import load_settings
 
 
-def load_model(model_path=None):
+def load_model(model_path=DEFAULT_MODEL_PATH):
     """
     Load the LLM model. If no path is provided, fallback to the default model from user settings.
 

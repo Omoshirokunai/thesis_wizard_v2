@@ -13,3 +13,6 @@ SETTINGS_FILE = os.path.join(USER_PROFILE_DIR, "user_settings.json")
 DEFAULT_SETTINGS_FILE = os.path.join(USER_PROFILE_DIR, "default_settings.json")
 HISTORY_FILE = os.path.join(USER_PROFILE_DIR, "history.json")
 KNOWLEDGE_BASE_FILE = os.path.join(USER_PROFILE_DIR, "knowledge_base.json")
+
+# Default model path
+DEFAULT_MODEL_PATH = os.path.join(BASE_DIR, "models", "Nemotron-Mini-4B-Instruct-GGUF.gguf")
