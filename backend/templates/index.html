@@ -3,151 +3,158 @@
 <head>
     <title>LLM Interaction</title>
     <style>
-        .error { color: red; }
-        .success { color: green; }
-
-        .current-interaction {
-            margin: 20px 0;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+        .form-group {
+            margin-bottom: 1rem;
         }
-
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
         .stats-box {
             background: #f5f5f5;
-            padding: 15px;
-            border-radius: 5px;
-            margin-bottom: 20px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 4px;
         }
-
-        .response-box {
-            background: #fff;
-            padding: 15px;
-            border: 1px solid #eee;
-            border-radius: 5px;
-        }
-
-        .stats-box ul {
+        .conversation-list {
             list-style: none;
             padding: 0;
         }
-
-        .stats-box li {
-            margin: 5px 0;
+        .user-message, .model-message {
+            padding: 0.5rem;
+            margin: 0.5rem 0;
+            border-radius: 4px;
+        }
+        .user-message {
+            background: #e3f2fd;
+        }
+        .model-message {
+            background: #f5f5f5;
+        }
+        .timestamp {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        .model-info {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 0.5rem;
+        }
+        .pdf-section {
+            margin: 2rem 0;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
 <body>
-    <h1>LLM Interaction</h1>
-
-     <div class="model-section">
-        <h2>Model Settings</h2>
-        <!-- Model Status -->
-        {% if model %}
-        <p class="success">Current Model: {{ settings.model_path }}</p>
-        <p>System Prompt: {{ settings.system_prompt }}</p>
-    {% else %}
-        <p class="error">No model loaded</p>
-        {% if not model_exists %}
-            <form action="/download_model" method="POST">
-                <button type="submit">Download Default Model</button>
-            </form>
-        {% endif %}
-    {% endif %}
-
-
-    <!-- Model Selection -->
-    <form action="/update_settings" method="POST">
+    <h1>Thesis Copilot</h1>
+    <!-- model selection -->
+    <form method="POST" action="/update_settings">
         <label for="model">Select Model:</label>
-        <select name="model" id="model">
-            {% for model_path in models %}
-                <option value="{{ model_path }}" {% if model_path == settings.model_path %}selected{% endif %}>
-                    {{ model_path.split('/')[-1] }}
+        <select name="model">
+            {% for model in models %}
+                <option value="{{ model }}" {% if model == selected_model %}selected{% endif %}>
+                    {{ model }}
                 </option>
             {% endfor %}
         </select>
-
-        <label for="system_prompt">System Prompt:</label>
-        <textarea name="system_prompt" id="system_prompt" rows="3" cols="50">{{ settings.system_prompt }}</textarea>
-
         <button type="submit">Update Settings</button>
     </form>
 
 
-
-
-
-<!-- User input -->
-    <form method="POST">
-        <label for="prompt">Your Input:</label>
-        <textarea name="prompt" id="prompt" rows="5" cols="50"></textarea><br>
-        <button type="submit">Submit</button>
-    </form>
-    <h2>Completions History</h2>
-<div class="completions-history">
-    {% for entry in history.completions %}
-        <div class="message {{ entry.type }}">
-            <div class="metadata">
-                <span class="timestamp">{{ entry.timestamp }}</span>
-                {% if entry.type == 'model' %}
-                    <span class="model-info">Model: {{ entry.model.name }}</span>
-                {% endif %}
+    <div class="input-section">
+        <!-- Project Context -->
+        <form method="POST">
+            <div class="form-group">
+                <label for="project_title">Project Title:</label>
+                <input type="text" name="project_title" id="project_title" value="{{ project_title }}">
+                <button type="submit">Set Title</button>
             </div>
-            <div class="content">{{ entry.content }}</div>
+        </form>
+
+        <form method="POST">
+            <div class="form-group">
+                <label for="section_context">Section Context:</label>
+                <input type="text" name="section_context" id="section_context" value="{{ section_context }}">
+                <button type="submit">Set Section</button>
+            </div>
+        </form>
+
+      <!-- Query Input -->
+    <form method="POST">
+        <div class="form-group">
+            <label for="query">Query:</label>
+            <input type="text" name="query" id="query" placeholder="Enter your query">
+            <button type="submit">Search</button>
         </div>
-    {% endfor %}
+    </form>
 </div>
 
-    <!-- AI Completion statisitcs-->
-{% if response %}
-<hr>
-<div class="current-interaction">
-    <h2>Current Interaction</h2>
-    <div class="stats-box">
-        <h3>Statistics</h3>
+
+<!-- Statistics Section -->
+<div class="stats-box">
+    <h3>Conversation Statistics</h3>
+    {% if stats %}
+    <ul>
+        <li>Total Exchanges: {{ stats.total_exchanges }}</li>
+        <li>User Words: {{ stats.user_words }} ({{ stats.user_percentage }}%)</li>
+        <li>Model Words: {{ stats.model_words }} ({{ stats.model_percentage }}%)</li>
+    </ul>
+    {% endif %}
+</div>
+
+<!-- PDF Processing Section -->
+<div class="pdf-section">
+    <h3>Knowledge Base Management</h3>
+    <form method="POST" action="/set_pdf_directory">
+        <div class="form-group">
+            <label for="pdf_directory">PDF Directory:</label>
+            <input type="text" name="pdf_directory" id="pdf_directory"
+                   placeholder="Enter path to PDF directory">
+            <button type="submit">Process PDFs</button>
+        </div>
+    </form>
+
+    {% if pdf_info %}
+    <div class="pdf-info">
+        <h4>Loaded Documents:</h4>
         <ul>
-            <li>Total Exchanges: {{ stats.total_exchanges }}</li>
-            <li>Words Exchanged: {{ stats.user_words + stats.model_words }}</li>
-            <li>User Contribution: {{ stats.user_percentage }}%</li>
-            <li>Model Contribution: {{ stats.model_percentage }}%</li>
+            {% for title, info in pdf_info.items() %}
+            <li>{{ title }} ({{ info.chunks }} chunks)</li>
+            {% endfor %}
         </ul>
     </div>
-    <div class="response-box">
-        <h3>Model Response:</h3>
-        <p>{{ response }}</p>
-    </div>
+    {% endif %}
 </div>
-{% endif %}
+<!-- Conversation History -->
+<div class="history-section">
+    <h3>Conversation History</h3>
+    {% if history and history.completions %}
+    <ul class="conversation-list">
+        {% for entry in history.completions %}
+        <li class="{{ entry.type }}-message">
+            <span class="timestamp">{{ entry.timestamp }}</span>
+            <div class="content">{{ entry.content }}</div>
+            {% if entry.type == 'model' %}
+            <div class="model-info">
+                <small>Model: {{ entry.model.name }}</small>
+            </div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No conversation history yet.</p>
+    {% endif %}
+</div>
 
-<!-- PDF Section -->
-    <h2>Specify PDF Directory for RAG</h2>
-    <form action="/set_pdf_directory" method="POST">
-        <label for="pdf_directory">PDF Directory Path:</label>
-        <input type="text" name="pdf_directory" id="pdf_directory" required><br>
-        <button type="submit">Submit</button>
-    </form>
-
-    <div class="pdf-section">
-        {% if pdf_info %}
-            <h3>Loaded PDF Documents:</h3>
-            <ul>
-                {% for title, info in pdf_info.items() %}
-                    <li>{{ title }} ({{ info.chunks }} chunks)</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
-
-    <div class="pdf-section">
-        {% if pdf_info %}
-            <h3>Loaded PDF Documents:</h3>
-            <ul>
-                {% for title, info in pdf_info.items() %}
-                    <li>{{ title }} ({{ info.chunks }} chunks)</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    </div>
 
 </body>
 </html>

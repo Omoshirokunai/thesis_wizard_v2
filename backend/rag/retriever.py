@@ -23,6 +23,12 @@ class OptimizedRetriever:
         self.metadata = []
         self.index = None
 
+         # Create empty knowledge base if not exists
+        if not os.path.exists(self.knowledge_base):
+            with open(self.knowledge_base, 'w') as f:
+                json.dump({}, f)
+            print(f"Created empty knowledge base at {self.knowledge_base}")
+
         self.load_knowledge_base()
         self.load_or_create_index()
 
@@ -30,16 +36,36 @@ class OptimizedRetriever:
         """
         Loads the knowledge base and extracts text chunks and metadata.
         """
-        if not os.path.exists(self.knowledge_base):
-            raise FileNotFoundError(f"Knowledge base '{self.knowledge_base}' not found.")
 
-        with open(self.knowledge_base, "r") as f:
-            data = json.load(f)
+        # if not os.path.exists(self.knowledge_base):
+        #     raise FileNotFoundError(f"Knowledge base '{self.knowledge_base}' not found.")
 
-        for title, chunks in data.items():
-            for chunk in chunks:
-                self.text_chunks.append(chunk)
-                self.metadata.append({"title": title})
+        # with open(self.knowledge_base, "r") as f:
+        #     data = json.load(f)
+
+        # for title, chunks in data.items():
+        #     for chunk in chunks:
+        #         self.text_chunks.append(chunk)
+        #         self.metadata.append({"title": title})
+
+        try:
+            with open(self.knowledge_base, "r") as f:
+                data = json.load(f)
+
+            self.text_chunks = []
+            self.metadata = []
+
+            for title, chunks in data.items():
+                for chunk in chunks:
+                    self.text_chunks.append(chunk)
+                    self.metadata.append({"title": title})
+
+            print(f"Loaded {len(self.text_chunks)} chunks from knowledge base")
+
+        except json.JSONDecodeError:
+            print("Error reading knowledge base, creating empty one")
+            with open(self.knowledge_base, 'w') as f:
+                json.dump({}, f)
 
     def load_or_create_index(self):
         """
@@ -89,3 +115,5 @@ class OptimizedRetriever:
             })
 
         return results
+
+

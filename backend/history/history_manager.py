@@ -1,26 +1,15 @@
 
 import json
 import os
-
-#     return {
-#         "user_words": user_word_count,
-#         "model_words": model_word_count,
-#         "user_percentage": (user_word_count / total_word_count) * 100,
-#         "model_percentage": (model_word_count / total_word_count) * 100,
-#     }
 from datetime import datetime
+from difflib import SequenceMatcher
 
 from utils.constants import HISTORY_FILE
 from utils.user_settings import load_settings
 
-# HISTORY_FILE = "history.json"
 
 def initialize_history():
     """Initializes the history file with an empty structure."""
-    # history = {
-    #     "user_input": [],
-    #     "model_content": []
-
     history = {
         "completions": [] # list of gpt completions
         }
@@ -58,62 +47,77 @@ def save_history(history):
     with open(HISTORY_FILE, "w") as f:
         json.dump(history, f, indent=2)
 
+def add_unique_sentence(content_list, new_entry):
+    """
+    Manages content list by keeping only most recent duplicate entries.
+    Returns: (bool) True if added as new, False if replaced duplicate
+    """
+    new_content = new_entry.get('content') if isinstance(new_entry, dict) else new_entry
+    duplicate_index = None
+
+    # Check for duplicates
+    for i, entry in enumerate(content_list):
+        existing_content = entry.get('content') if isinstance(entry, dict) else entry
+        similarity = SequenceMatcher(None, str(existing_content), str(new_content)).ratio()
+        if similarity > 0.9:
+            duplicate_index = i
+            break
+
+    # Handle duplicate found
+    if duplicate_index is not None:
+        content_list.pop(duplicate_index)  # Remove old duplicate
+        content_list.append(new_entry)     # Add new entry
+        return False
+
+    # No duplicate - add new entry
+    content_list.append(new_entry)
+    return True
+
 def add_user_input(input_text):
-    """
-    Adds a user input to the history.
+    """Add user input, replacing duplicates with most recent"""
+    try:
+        history = load_history()
+        if "completions" not in history:
+            history["completions"] = []
 
-    Parameters:
-    - input_text (str): User input text.
-    """
-    history = load_history()
-    time_stamp = datetime.now().isoformat()
+        entry = {
+            "timestamp": datetime.now().isoformat(),
+            "content": input_text,
+            "type": "user"
+        }
 
-    entry = {"time_stamp": time_stamp,
-             "user_input": input_text,
-             "type": "user"}
-    if "completions" not in history:
-        history["completions"] = []
-    history["completions"].append(entry)
-
-    save_history(history)
-
+        add_unique_sentence(history["completions"], entry)
+        save_history(history)
+        return True
+    except Exception as e:
+        print(f"Error adding user input: {e}")
+        return False
 
 def add_model_response(response_text):
-    """
-    Adds a model response to the history.
+    """Add model response, replacing duplicates with most recent"""
+    try:
+        history = load_history()
+        settings = load_settings()
 
-    Parameters:
-    - response_text (str): Model response text.
-    """
+        text = response_text.get('choices', [{}])[0].get('text', '') if isinstance(response_text, dict) else str(response_text)
 
-    # Ensure we're storing the text content, not the dict
-    history = load_history()
-    timestamp = datetime.now().isoformat()
-    settings = load_settings()
-
-    if isinstance(response_text, dict):
-        # text = response_text.get('choices', [{}])[0].get('text', '')
-        text = response_text.get('choices', [{}])[0].get('text', '')
-    else:
-        text = str(response_text)
-
-    entry = {
-        "type": "model",
-        "content": text,
-        "timestamp": timestamp,
-        "model": {
-            "path": settings.get("model_path", ""),
-            "name": os.path.basename(settings.get("model_path", "")),
-            "system_prompt": settings.get("system_prompt", "")
+        entry = {
+            "type": "model",
+            "content": text,
+            "timestamp": datetime.now().isoformat(),
+            "model": {
+                "path": settings.get("model_path", ""),
+                "name": os.path.basename(settings.get("model_path", "")),
+                "system_prompt": settings.get("system_prompt", "")
+            }
         }
-    }
-    if "completions" not in history:
-        history["completions"] = []
-    history["completions"].append(entry)
-    timestamp = datetime.now().isoformat()
-    settings = load_settings()
 
-    save_history(history)
+        add_unique_sentence(history.get("completions", []), entry)
+        save_history(history)
+        return True
+    except Exception as e:
+        print(f"Error adding model response: {e}")
+        return False
 
 def calculate_content_statistics():
     """
@@ -122,16 +126,14 @@ def calculate_content_statistics():
     history = load_history()
     completions = history.get("completions", [])
 
+    # Filter messages by type
     user_messages = [entry for entry in completions if entry["type"] == "user"]
     model_messages = [entry for entry in completions if entry["type"] == "model"]
 
-    user_words = sum(len(entry["user_input"].split()) for entry in user_messages)
+    # Calculate word counts using 'content' field
+    user_words = sum(len(entry["content"].split()) for entry in user_messages)
     model_words = sum(len(entry["content"].split()) for entry in model_messages)
     total = user_words + model_words
-    # user_words = sum(len(text.split()) for text in history["user_input"])
-    # print(history["model_content"])
-    # model_words = sum(len(text.split()) for text in history["model_content"])
-    # total = user_words + model_words
 
     return {
         "user_words": user_words,
@@ -140,4 +142,29 @@ def calculate_content_statistics():
         "model_percentage": round((model_words / total * 100) if total > 0 else 0, 2),
         "total_exchanges": len(completions) // 2
     }
+# def calculate_content_statistics():
+#     """
+#     Calculates content statistics from completion history.
+#     """
+#     history = load_history()
+#     completions = history.get("completions", [])
+
+#     user_messages = [entry for entry in completions if entry["type"] == "user"]
+#     model_messages = [entry for entry in completions if entry["type"] == "model"]
+
+#     user_words = sum(len(entry["user_input"].split()) for entry in user_messages)
+#     model_words = sum(len(entry["content"].split()) for entry in model_messages)
+#     total = user_words + model_words
+#     # user_words = sum(len(text.split()) for text in history["user_input"])
+#     # print(history["model_content"])
+#     # model_words = sum(len(text.split()) for text in history["model_content"])
+#     # total = user_words + model_words
+
+#     return {
+#         "user_words": user_words,
+#         "model_words": model_words,
+#         "user_percentage": round((user_words / total * 100) if total > 0 else 0, 2),
+#         "model_percentage": round((model_words / total * 100) if total > 0 else 0, 2),
+#         "total_exchanges": len(completions) // 2
+#     }
 

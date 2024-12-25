@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <!-- download default model -->
+    <form method="POST" action="/download_default_model">
+        <button type="submit">Download Default Model</button>
+    </form>
+
+    <!-- upload custom model -->
+    <form method="POST" action="/upload_custom_model" enctype="multipart/form-data">
+        <input type="file" name="model">
+        <button type="submit">Upload Custom Model</button>
+    </form>
+
+    <!-- model selection -->
+    <form method="POST" action="/update_settings">
+        <label for="model">Select Model:</label>
+        <select name="model">
+            {% for model in models %}
+                <option value="{{ model }}" {% if model == selected_model %}selected{% endif %}>
+                    {{ model }}
+                </option>
+            {% endfor %}
+        </select>
+        <button type="submit">Update Settings</button>
+    </form>
+</body>
+</html>

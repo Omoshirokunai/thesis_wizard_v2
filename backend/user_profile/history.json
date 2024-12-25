@@ -1,14 +1,14 @@
 {
   "completions": [
     {
-      "time_stamp": "2024-12-24T16:59:20.197567",
-      "user_input": "LLMs for research writing is unethical because:",
+      "timestamp": "2024-12-25T16:23:25.034844",
+      "content": "using LLMs to control robot is ",
       "type": "user"
     },
     {
       "type": "model",
-      "content": "A. They can generate plagiarism.\nB. They can generate biased content.\nC. They can generate content that is not relevant to the topic.\nD. They can generate content that is not coherent.",
-      "timestamp": "2024-12-24T16:59:31.425884",
+      "content": " to  ___________.\n\nA) assist the robot in decision making\n",
+      "timestamp": "2024-12-25T16:23:30.252998",
       "model": {
         "path": "models\\models--bartowski--Nemotron-Mini-4B-Instruct-GGUF\\snapshots\\fb49cde090c86092d89905bea2ffc41c23c2615e\\Nemotron-Mini-4B-Instruct-Q6_K.gguf",
         "name": "Nemotron-Mini-4B-Instruct-Q6_K.gguf",
@@ -16,14 +16,14 @@
       }
     },
     {
-      "time_stamp": "2024-12-25T11:12:22.598844",
-      "user_input": "LLMs for research writing is unethical because:",
+      "timestamp": "2024-12-25T16:24:16.800681",
+      "content": "VLMs for robot control have ",
       "type": "user"
     },
     {
       "type": "model",
-      "content": "A. They can generate plagiarism.\nB. They can generate biased content.\nC. They can generate content that is not relevant to the topic.\nD. They can generate content that is not coherent.",
-      "timestamp": "2024-12-25T11:12:34.316284",
+      "content": " shown to be effective in various tasks.",
+      "timestamp": "2024-12-25T16:24:19.072451",
       "model": {
         "path": "models\\models--bartowski--Nemotron-Mini-4B-Instruct-GGUF\\snapshots\\fb49cde090c86092d89905bea2ffc41c23c2615e\\Nemotron-Mini-4B-Instruct-Q6_K.gguf",
         "name": "Nemotron-Mini-4B-Instruct-Q6_K.gguf",
@@ -31,29 +31,14 @@
       }
     },
     {
-      "time_stamp": "2024-12-25T13:30:54.124837",
-      "user_input": "LLMs for research writing is unethical because:",
+      "timestamp": "2024-12-25T16:25:51.120718",
+      "content": "a study on LLms for robot control was conducted by",
       "type": "user"
     },
     {
       "type": "model",
-      "content": "A. They can generate plagiarism.\nB. They can generate biased content.\nC. They can generate content that is not relevant to the topic.\nD. They can generate content that is not coherent.",
-      "timestamp": "2024-12-25T13:31:05.312956",
-      "model": {
-        "path": "models\\models--bartowski--Nemotron-Mini-4B-Instruct-GGUF\\snapshots\\fb49cde090c86092d89905bea2ffc41c23c2615e\\Nemotron-Mini-4B-Instruct-Q6_K.gguf",
-        "name": "Nemotron-Mini-4B-Instruct-Q6_K.gguf",
-        "system_prompt": "As a researcher writing a thesis on a given topic. the sensible completion for the following sentence is"
-      }
-    },
-    {
-      "time_stamp": "2024-12-25T13:32:38.131470",
-      "user_input": "LLMs for research writing is unethical because:",
-      "type": "user"
-    },
-    {
-      "type": "model",
-      "content": "A. They can generate plagiarism.\nB. They can generate biased content.\nC. They can generate content that is not relevant to the topic.\nD. They can generate content that is not coherent.",
-      "timestamp": "2024-12-25T13:32:50.899794",
+      "content": " [author's name].\n\n(The correct answer is \"researcher",
+      "timestamp": "2024-12-25T16:25:54.437849",
       "model": {
         "path": "models\\models--bartowski--Nemotron-Mini-4B-Instruct-GGUF\\snapshots\\fb49cde090c86092d89905bea2ffc41c23c2615e\\Nemotron-Mini-4B-Instruct-Q6_K.gguf",
         "name": "Nemotron-Mini-4B-Instruct-Q6_K.gguf",

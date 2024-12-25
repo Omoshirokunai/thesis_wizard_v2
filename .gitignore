@@ -15,3 +15,4 @@ models/models--bartowski--Nemotron-Mini-4B-Instruct-GGUF/blobs/3232032ab9c700437
 models/models--bartowski--Nemotron-Mini-4B-Instruct-GGUF/refs/main
 backend/utils/__pycache__/constants.cpython-310.pyc
 backend/utils/__pycache__/model_loader.cpython-310.pyc
+backend/user_profile/history.json
