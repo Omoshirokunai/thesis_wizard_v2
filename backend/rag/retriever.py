@@ -98,79 +98,53 @@ class OptimizedRetriever:
             faiss.write_index(self.index, self.index_file)
             print(f"Saved FAISS index to {self.index_file}")
 
-    def search_and_update(self, query, project_title=None):
-        """Search online sources and update knowledge base"""
-        search_query = project_title or query
+    def update_knowledge_base(self, query: str) -> bool:
+        """Update knowledge base with new information from online sources"""
         try:
             # Search online sources
-            arxiv_chunks, arxiv_citations = search_arxiv(search_query)
-            springer_chunks, springer_citations = search_springer(search_query)
+            arxiv_chunks, arxiv_citations = search_arxiv(query, max_results=3)
+            springer_chunks, springer_citations = search_springer(query, max_results=3)
 
-            # Update knowledge base
-            with open(self.knowledge_base, "r+") as f:
-                kb = json.load(f)
+            # Load existing knowledge base
+            with open(self.knowledge_base, 'r') as f:
+                kb_data = json.load(f)
 
-                # Add new content with metadata
-                for chunk, citation in zip(arxiv_chunks, arxiv_citations):
-                    kb[f"arxiv_{citation.title}"] = {
+            # Add new content
+            updated = False
+            for chunk, citation in zip(arxiv_chunks, arxiv_citations):
+                key = f"arxiv_{citation.title}"
+                if key not in kb_data:
+                    kb_data[key] = {
                         "text": chunk,
-                        "citation": citation.__dict__,
-                        "metadata": {"source": "arxiv", "title": citation.title}
+                        "metadata": {
+                            "source": "arxiv",
+                            "title": citation.title,
+                            "authors": citation.authors,
+                            "year": citation.year,
+                            "url": citation.url
+                        }
                     }
+                    self.text_chunks.append(chunk)
+                    self.metadata.append({"title": citation.title, "source": "arxiv"})
+                    updated = True
 
-                for chunk, citation in zip(springer_chunks, springer_citations):
-                    kb[f"springer_{citation.title}"] = {
-                        "text": chunk,
-                        "citation": citation.__dict__,
-                        "metadata": {"source": "springer", "title": citation.title}
-                    }
+            # Update FAISS index if new content was added
+            if updated:
+                new_embeddings = self.model.encode([chunk["text"] for chunk in kb_data.values()
+                                                  if chunk not in self.text_chunks],
+                                                  convert_to_numpy=True)
+                if len(new_embeddings) > 0:
+                    self.index.add(new_embeddings)
+                    faiss.write_index(self.index, self.index_file)
 
-                f.seek(0)
-                json.dump(kb, f, indent=2)
-                f.truncate()
+                # Save updated knowledge base
+                with open(self.knowledge_base, 'w') as f:
+                    json.dump(kb_data, f, indent=2)
 
-            # Reload knowledge base and recreate index
-            self.load_knowledge_base()
-            self.load_or_create_index()
-
+            return updated
         except Exception as e:
             print(f"Error updating knowledge base: {e}")
             return False
-        return True
-
-    def process_and_update_knowledge_base(query):
-        """Searches online sources and updates knowledge base with relevant content"""
-        try:
-            # Search online sources
-            arxiv_chunks, arxiv_citations = search_arxiv(query, max_results=5)
-            springer_chunks, springer_citations = search_springer(query, max_results=5)
-
-            # Update knowledge base with new content
-            with open("knowledge_base.json", "r+") as f:
-                kb = json.load(f)
-                # Add new chunks with source metadata
-                for chunk, citation in zip(arxiv_chunks, arxiv_citations):
-                    kb[f"arxiv_{citation.title}"] = {
-                        "chunks": chunk,
-                        "citation": citation.__dict__
-                    }
-                for chunk, citation in zip(springer_chunks, springer_citations):
-                    kb[f"springer_{citation.title}"] = {
-                        "chunks": chunk,
-                        "citation": citation.__dict__
-                    }
-                f.seek(0)
-                json.dump(kb, f)
-
-            # Reinitialize retriever with updated knowledge base
-            global retriever
-            retriever = OptimizedRetriever(
-                knowledge_base="knowledge_base.json",
-                index_file="index.faiss"
-            )
-
-        except Exception as e:
-            print(f"Error updating knowledge base: {e}")
 
     def retrieve_relevant_chunks(self, query, top_k=3):
         """

@@ -51,6 +51,27 @@
             border: 1px solid #ddd;
             border-radius: 4px;
         }
+        .rag-results {
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .rag-results li {
+            margin-bottom: 1rem;
+            padding: 0.5rem;
+            background: #f8f9fa;
+        }
+        .source {
+            font-weight: bold;
+        }
+        .relevance {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .snippet {
+            margin-top: 0.5rem;
+        }
     </style>
 </head>
 <body>
@@ -71,20 +92,30 @@
 
     <div class="input-section">
         <!-- Project Context -->
-        <form method="POST">
+        <form method="POST" action="{{ url_for('update_project') }}">
             <div class="form-group">
                 <label for="project_title">Project Title:</label>
-                <input type="text" name="project_title" id="project_title" value="{{ project_title }}">
-                <button type="submit">Set Title</button>
+                <input type="text" name="project_title" id="project_title" value="{{ project_context.title }}">
             </div>
-        </form>
 
-        <form method="POST">
             <div class="form-group">
-                <label for="section_context">Section Context:</label>
-                <input type="text" name="section_context" id="section_context" value="{{ section_context }}">
-                <button type="submit">Set Section</button>
+                <label for="keywords">Keywords (comma-separated):</label>
+                <input type="text" name="keywords" id="keywords" value="{{ ','.join(project_context.keywords) }}">
             </div>
+
+            <div class="form-group">
+                <label for="section_context">Section:</label>
+                <select name="section_context" id="section_context">
+                    <option value="introduction" {% if project_context.section == 'introduction' %}selected{% endif %}>Introduction</option>
+                    <option value="literature_review" {% if project_context.section == 'literature_review' %}selected{% endif %}>Literature Review</option>
+                    <option value="methodology" {% if project_context.section == 'methodology' %}selected{% endif %}>Methodology</option>
+                    <option value="results" {% if project_context.section == 'results' %}selected{% endif %}>Results</option>
+                    <option value="discussion" {% if project_context.section == 'discussion' %}selected{% endif %}>Discussion</option>
+                    <option value="conclusion" {% if project_context.section == 'conclusion' %}selected{% endif %}>Conclusion</option>
+                </select>
+            </div>
+
+            <button type="submit">Update Project</button>
         </form>
 
       <!-- Query Input -->
@@ -109,6 +140,28 @@
     </ul>
     {% endif %}
 </div>
+<!-- RAG section -->
+{% if rag_results %}
+<div class="rag-results">
+    <h3>Relevant Sources</h3>
+    <ul>
+    {% for result in rag_results %}
+        <li>
+            <div class="source">{{ result.source }}</div>
+            <div class="relevance">Relevance: {{ "%.2f"|format(result.score) }}</div>
+            <div class="snippet">{{ result.text[:200] }}...</div>
+        </li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if response %}
+<div class="response-section">
+    <h3>Response</h3>
+    <div class="model-response">{{ response }}</div>
+</div>
+{% endif %}
 
 <!-- PDF Processing Section -->
 <div class="pdf-section">
@@ -154,7 +207,6 @@
     <p>No conversation history yet.</p>
     {% endif %}
 </div>
-
 
 </body>
 </html>

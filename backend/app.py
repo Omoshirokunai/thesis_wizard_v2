@@ -15,6 +15,13 @@ from pdf_processing.metadata import get_pdf_title, save_knowledge_base
 from pdf_processing.pdf_extractor import extract_text_from_pdf
 from rag.citation import format_citation, get_citation
 from rag.retriever import OptimizedRetriever
+from utils.constants import (
+    DEFAULT_MODEL_PATH,
+    DEFAULT_SETTINGS_FILE,
+    HISTORY_FILE,
+    KNOWLEDGE_BASE_FILE,
+    SETTINGS_FILE,
+)
 from utils.model_download import check_and_download_default_model
 from utils.model_loader import load_model
 from utils.user_settings import load_settings, update_settings
@@ -42,6 +49,68 @@ def get_available_models():
                 model_files.append(full_path)
     return model_files
 
+class ProjectContext:
+    def __init__(self):
+        self.title = "Untitled Project"
+        self.keywords = []
+        self.section = "General"
+        self.knowledge_base_updated = False
+
+project_context = ProjectContext()
+
+@app.route("/update_project", methods=["POST"])
+def update_project():
+    global project_context, retriever
+
+    if "project_title" in request.form:
+        project_context.title = request.form.get("project_title")
+        # Search online when project title changes
+        if retriever:
+            # Update knowledge base based on title
+            chunks = retriever.search(project_context.title)
+            retriever.add_to_knowledge_base(chunks, f"title_{project_context.title}")
+            project_context.knowledge_base_updated = True
+
+
+    if "keywords" in request.form:
+        new_keywords = request.form.get("keywords").split(',')
+        project_context.keywords = [k.strip() for k in new_keywords if k.strip()]
+        # Search online for each keyword
+        if retriever:
+            for keyword in project_context.keywords:
+                retriever.add_to_knowledge_base(retriever.search(keyword), f"keyword_{keyword}")
+            project_context.knowledge_base_updated = True
+
+    if "section_context" in request.form:
+        project_context.section = request.form.get("section_context")
+
+    return redirect(url_for("index"))
+@app.route("/api/autocomplete", methods=["POST"])
+def api_autocomplete():
+    """
+    Endpoint for real-time autocomplete suggestions.
+    Expects JSON input: {"prompt": "user text", "max_suggestions": 1}
+    """
+    pass
+
+@app.route("/api/autocomplete", methods=["POST"])
+def autocomplete():
+    """
+    Endpoint for real-time autocomplete suggestions for the flutter app"""
+    query = request.json.get("current_text", "")
+    max_suggestions = 1
+
+    if not model:
+        return jsonify({"suggestions": []})
+
+    # Generate completion based on section context
+    prompt = f"""In the {project_context.section} section of a paper about {project_context.title},
+                complete the following text: {query}"""
+
+    suggestions = model(prompt)
+    return jsonify({"suggestions": suggestions})
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     # global model
@@ -60,7 +129,6 @@ def index():
     if request.method == "POST":
 
         if not model_exists:
-            #TODO: replace with a no model loaded redirect to download model page insead
             response = "No model loaded. Please select or download a model."
             content_stats = calculate_content_statistics()
             return render_template(
@@ -74,47 +142,28 @@ def index():
                 pdf_info=pdf_info,
                 history=history
             )
-            # return render_template(
-            #     "index.html",
-            #     response=response,
-            #     stats=content_stats,
-            #     settings=settings,
-            #     models=get_available_models(),
-            #     model=model,
-            #     model_exists=model_exists,
-            #     pdf_info=pdf_info,
-            #     history=history
-            # )
 
+         # Handle query submission
         if "query" in request.form:
             query = request.form.get("query")
             add_user_input(query)
 
-        # Check if we have a knowledge base and retriever
-            if retriever and os.path.exists("knowledge_base.json"):
-                try:
-                    with open("knowledge_base.json", "r") as f:
-                        kb_data = json.load(f)
-                    if kb_data:  # Only do RAG if knowledge base has content
-                        rag_results = retriever.retrieve_relevant_chunks(query, top_k=3)
-                        rag_context = "\n".join([chunk["text"] for chunk in rag_results])
-                        system_prompt = f"As a researcher working on '{project_title}', " \
-                                    f"in the section '{section_context}', given the information: {rag_context} " \
-                                    f"complete the sentence: {query}"
-                    else:
-                        system_prompt = f"As a researcher working on '{project_title}', " \
-                                    f"in the section '{section_context}', " \
-                                    f"complete the sentence: {query}"
-                except (json.JSONDecodeError, FileNotFoundError):
-                    system_prompt = f"As a researcher working on '{project_title}', " \
-                                f"in the section '{section_context}', " \
-                                f"complete the sentence: {query}"
-            else:
-                system_prompt = f"As a researcher working on '{project_title}', " \
-                            f"in the section '{section_context}', " \
-                            f"complete the sentence: {query}"
+            # Get relevant context from knowledge base if available
+            context = ""
+            if retriever:
+                relevant_chunks = retriever.search(query)
+                rag_results = relevant_chunks[:3]  # Top 3 most relevant chunks
+                context = "\n".join(chunk["text"] for chunk in rag_results)
 
-            response = model(system_prompt) if model else "No model loaded"
+            # Generate response with context
+            prompt = f"""Project: {project_context.title}
+                        Section: {project_context.section}
+                        Context: {context}
+                        Query: {query}"""
+
+
+            response = model(prompt)
+            response = response['choices'][0]['text'].strip()
             add_model_response(response)
             content_stats = calculate_content_statistics()
 
@@ -123,7 +172,7 @@ def index():
             if os.path.exists(directory):
                 # Initialize retriever only when we have PDFs
                 retriever = OptimizedRetriever(
-                    knowledge_base="knowledge_base.json",
+                    knowledge_base= KNOWLEDGE_BASE_FILE,
                     index_file="index.faiss"
                 )
 
@@ -147,41 +196,19 @@ def index():
                 print(f"Directory does not exist: {directory}")
 
 
-        elif "project_title" in request.form:
-            project_title = request.form.get("project_title")
-        elif "section_context" in request.form:
-            section_context = request.form.get("section_context")
-        # if not model:
-        #     response = "No model loaded. Please select or download a model."
-        # else:
-        #     prompt = request.form.get("prompt")
-        #     add_user_input(prompt)
-        #     try:
-        #         response = generate_response(prompt)
-        #         add_model_response(response)
-        #     except Exception as e:
-        #         response = f"Error: {str(e)}"
 
     return render_template(
         "index.html",
-         response=response,
+        response=response,
         stats=content_stats,
+        project_context=project_context,
         history=history,
         pdf_files=pdf_files,
         rag_results=rag_results,
-        project_title=project_title,
-        section_context=section_context,
+        pdf_info=pdf_info,
         models=get_available_models(),
         selected_model=settings["model_path"]
     )
-
-@app.route("/autocomplete", methods=["POST"])
-def autocomplete():
-    """
-    Endpoint for real-time autocomplete suggestions.
-    Expects JSON input: {"prompt": "user text", "max_suggestions": 1}
-    """
-    pass
 
 @app.route("/download_model", methods=["POST"])
 def download_model():

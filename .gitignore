@@ -17,3 +17,4 @@ backend/utils/__pycache__/constants.cpython-310.pyc
 backend/utils/__pycache__/model_loader.cpython-310.pyc
 backend/user_profile/history.json
 backend/.env
+backend/user_profile/history.json
