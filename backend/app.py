@@ -13,6 +13,7 @@ from llm_model import generate_response
 from pdf_processing.chunking import chunk_text
 from pdf_processing.metadata import get_pdf_title, save_knowledge_base
 from pdf_processing.pdf_extractor import extract_text_from_pdf
+from rag.citation import format_citation, get_citation
 from rag.retriever import OptimizedRetriever
 from utils.model_download import check_and_download_default_model
 from utils.model_loader import load_model
@@ -242,6 +243,22 @@ def set_pdf_directory():
     save_knowledge_base(chunked_data)
 
     return redirect(url_for("index"))
+
+@app.route("/get_citation", methods=["POST"])
+def get_citation_route():
+    file_path = request.form.get("file_path")
+    manual = request.form.get("manual", "false") == "true"
+
+    citation = get_citation(file_path, manual_input=manual)
+    if citation:
+        return jsonify({
+            "success": True,
+            "citation": format_citation(citation, "apa")
+        })
+    return jsonify({
+        "success": False,
+        "error": "Could not generate citation"
+    })
 
 @app.route("/api/status", methods=["GET"])
 def get_status():
