@@ -23,7 +23,7 @@ app = Flask(__name__)
 CORS(app) # Enable CORS for all routes
 # Global state
 pdf_files = []
-# model = None
+
 pdf_info = {}
 settings = load_settings()
 model = load_model(settings["model_path"])
@@ -59,7 +59,7 @@ def index():
     # if request.method == "POST" and request.form.get("prompt"):
     if request.method == "POST":
 
-        if not model:
+        if not model_exists:
             #TODO: replace with a no model loaded redirect to download model page insead
             response = "No model loaded. Please select or download a model."
             content_stats = calculate_content_statistics()

@@ -68,7 +68,26 @@ def format_citation(citation: Citation, style: str = "apa") -> str:
             citation_text += f". https://doi.org/{citation.doi}"
         return citation_text
 
-    # Add other citation styles as needed
+    if style == "IEEE":
+        authors = " and ".join(citation.authors)
+        citation_text = f"{authors}, \"{citation.title},\" {citation.journal}, vol. {citation.volume}, no. {citation.issue}, p. {citation.pages}, {citation.year}."
+        if citation.doi:
+            citation_text += f" doi: {citation.doi}"
+        return citation_text
+
+    if style == "harvard":
+        authors = ", ".join(citation.authors)
+        citation_text = f"{authors} ({citation.year}). {citation.title}. {citation.journal}, {citation.volume}({citation.issue}), {citation.pages}."
+        if citation.doi:
+            citation_text += f" doi: {citation.doi}"
+        return citation_text
+
+    if style == "mla":
+        authors = ", ".join(citation.authors)
+        citation_text = f"{authors}. \"{citation.title}.\" {citation.journal}, vol. {citation.volume}, no. {citation.issue}, {citation.year}."
+        if citation.doi:
+            citation_text += f" doi: {citation.doi}"
+        return citation_text
     return ""
 
 def get_citation(file_path: str, manual_input: bool = False) -> Optional[Citation]:
@@ -120,20 +139,35 @@ def get_citation(file_path: str, manual_input: bool = False) -> Optional[Citatio
 
     return None
 
-# Example usage:
-if __name__ == "__main__":
-    file_path = "example.pdf"
+class CitationManager:
+    def __init__(self):
+        self.citations = {}  # doi/id -> Citation
+        self.citation_order = []  # Maintain order of citations
 
-    # Try automatic citation
-    citation = get_citation(file_path)
-    if citation:
-        print("Automatic citation found:")
-        print(format_citation(citation, "apa"))
-    else:
-        print("No automatic citation found")
+    def add_citation(self, citation: Citation) -> int:
+        """Add citation and return its index number."""
+        key = citation.doi or citation.title
+        if key not in self.citations:
+            self.citations[key] = citation
+            self.citation_order.append(key)
+        return self.citation_order.index(key) + 1
 
-    # Manual citation option
-    manual_citation = get_citation(file_path, manual_input=True)
-    if manual_citation:
-        print("\nManual citation:")
-        print(format_citation(manual_citation, "apa"))
+    def format_inline_citation(self, citation: Citation, style: str = "numerical") -> str:
+        """Format citation for inline use."""
+        key = citation.doi or citation.title
+        if style == "numerical":
+            return f"[{self.citation_order.index(key) + 1}]"
+        elif style == "author-year":
+            authors = citation.authors[0].split()[-1] if citation.authors else "Unknown"
+            return f"({authors}, {citation.year})"
+
+    def format_bibliography(self, style: str = "apa") -> str:
+        """Generate formatted bibliography."""
+        bibliography = []
+        for i, key in enumerate(self.citation_order, 1):
+            citation = self.citations[key]
+            if style == "numerical":
+                bibliography.append(f"[{i}] {format_citation(citation, 'apa')}")
+            else:
+                bibliography.append(format_citation(citation, style))
+        return "\n\n".join(bibliography)

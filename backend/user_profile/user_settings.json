@@ -1,4 +1,4 @@
 {
     "model_path": "models\\models--bartowski--Nemotron-Mini-4B-Instruct-GGUF\\snapshots\\fb49cde090c86092d89905bea2ffc41c23c2615e\\Nemotron-Mini-4B-Instruct-Q6_K.gguf",
-    "system_prompt": "As a researcher writing a thesis on a given topic. the sensible completion for the following sentence is"
+    "system_prompt": ""
 }

@@ -20,4 +20,7 @@ def load_model(model_path=DEFAULT_MODEL_PATH):
         raise ValueError("Model path is invalid or missing.")
 
     print(f"Loading model from: {model_path}")
-    return Llama(model_path=model_path, verbose=False)
+    return Llama(model_path=model_path,n_ctx=256,
+            n_batch=32,
+            n_threads=2,
+            verbose=False)
